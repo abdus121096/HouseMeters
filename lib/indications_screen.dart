@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'indications_notifier.dart';
+
 
 class Indications {
   String date;
@@ -15,7 +17,7 @@ class IndicationsScreen extends StatefulWidget {
 }
 
 class _State extends State<IndicationsScreen> {
-  final List<Indications> indications = [
+  final IndicationsNotifier notifier = IndicationsNotifier([
     Indications('01.01.2024', 16209),
     Indications('01.02.2024', 16279),
     Indications('01.03.2024', 16381),
@@ -28,7 +30,13 @@ class _State extends State<IndicationsScreen> {
     Indications('01.10.2024', 17165),
     Indications('01.11.2024', 17214),
     Indications('01.12.2024', 17253),
-  ];
+  ]);
+
+  @override
+  void dispose() {
+    notifier.dispose();
+    super.dispose();
+  }
 
   void _addDialog(BuildContext context) {
     DateTime selectedDate = DateTime.now();
@@ -81,7 +89,14 @@ class _State extends State<IndicationsScreen> {
                   },
                   child: Text('отмена'),
                 ),
-                TextButton(onPressed: () {}, child: Text('добавить')),
+                TextButton(onPressed: () {
+                  final number = int.tryParse(controller.text);
+                  if(number != null) {
+                    final date = '${selectedDate.day}.${selectedDate.month}.${selectedDate.year}';
+                    notifier.add(Indications(date, number));
+                  }
+                  Navigator.of(context).pop();
+                }, child: Text('добавить')),
               ],
             );
           },
@@ -90,7 +105,8 @@ class _State extends State<IndicationsScreen> {
     );
   }
 
-  void _editDialog(BuildContext context, Indications item) {
+  void _editDialog(BuildContext context, int index) {
+    final item = notifier.value[index];
     DateTime selectedDate = DateTime.now();
     final TextEditingController controller = TextEditingController(
       text: item.number.toString(),
@@ -134,13 +150,24 @@ class _State extends State<IndicationsScreen> {
                 ],
               ),
               actions: [
+                TextButton(onPressed: () {
+                  notifier.delete(index);
+                  Navigator.of(context).pop();
+                }, child: Text('удалить'),),
                 TextButton(
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
                   child: Text('отмена'),
                 ),
-                TextButton(onPressed: () {}, child: Text('сохранить')),
+                TextButton(onPressed: () {
+                  final number = int.tryParse(controller.text);
+                  if(number != null) {
+                    notifier.update(index, Indications(item.date, number));
+                  }
+                  Navigator.of(context).pop();
+                },
+                 child: Text('сохранить')),
               ],
             );
           },
@@ -152,26 +179,31 @@ class _State extends State<IndicationsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: ListView.separated(
-        separatorBuilder: (context, index) => Divider(
-          color: Colors.grey,
-          thickness: 0.5,
-          indent: 17,
-          endIndent: 17,
-        ),
-        itemCount: indications.length,
-        itemBuilder: (context, index) {
-          final item = indications[index];
-          return GestureDetector(
-            onLongPress: () {
-              _editDialog(context, item);
-            },
-            child: ListTile(
-              title: Text(item.date),
-              subtitle: Text(item.number.toString()),
+      body: ValueListenableBuilder(
+        valueListenable: notifier,
+        builder: (context, indications, _) {
+          return ListView.separated(
+            separatorBuilder: (context, index) => Divider(
+              color: Colors.grey,
+              thickness: 0.5,
+              indent: 17,
+              endIndent: 17,
             ),
+            itemCount: indications.length,
+            itemBuilder: (context, index) {
+              final item = indications[index];
+              return GestureDetector(
+                onLongPress: () {
+                  _editDialog(context, index);
+                },
+                child: ListTile(
+                  title: Text(item.date),
+                  subtitle: Text(item.number.toString()),
+                ),
+              );
+            },
           );
-        },
+        }
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
