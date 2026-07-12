@@ -1,5 +1,12 @@
 import 'package:flutter/material.dart';
 
+class Indications{
+  String date;
+  int number;
+
+  Indications(this.date, this.number);
+}
+
 class IndicationsScreen extends StatefulWidget {
   const IndicationsScreen({super.key});
 
@@ -8,6 +15,23 @@ class IndicationsScreen extends StatefulWidget {
 }
 
 class _State extends State<IndicationsScreen> {
+
+  final List<Indications> indications = [
+    Indications('01.01.2024', 16209),
+    Indications('01.02.2024', 16279),
+    Indications('01.03.2024', 16381),
+    Indications('01.04.2024', 16483),
+    Indications('01.05.2024', 16569),
+    Indications('01.06.2024', 16673),
+    Indications('01.07.2024', 16825),
+    Indications('01.08.2024', 16952),
+    Indications('01.09.2024', 17083),
+    Indications('01.10.2024', 17165),
+    Indications('01.11.2024', 17214),
+    Indications('01.12.2024', 17253),
+  ];
+
+
   void _addDialog(BuildContext context) {
     DateTime selectedDate = DateTime.now();
     final TextEditingController controller = TextEditingController();
@@ -71,7 +95,22 @@ class _State extends State<IndicationsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(child: Text(widget.runtimeType.toString())),
+      body: ListView.separated(
+        separatorBuilder: (context, index) => Divider(
+          color: Colors.grey,
+          thickness: 0.5,
+          indent: 17,
+          endIndent: 17,
+
+        ),
+        itemCount: indications.length,
+        itemBuilder: (context, index) {
+          final item = indications[index];
+          return ListTile(
+            title: Text(item.date),
+            subtitle: Text(item.number.toString()),
+          );
+        }),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           _addDialog(context);
