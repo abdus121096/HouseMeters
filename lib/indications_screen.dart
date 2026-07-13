@@ -55,7 +55,7 @@ class _State extends State<IndicationsScreen> {
                   Row(
                     children: [
                       Text(
-                        '${selectedDate.day}.${selectedDate.month}.${selectedDate.year}',
+                        '${selectedDate.day.toString().padLeft(2, '0')}.${selectedDate.month.toString().padLeft(2, '0')}.${selectedDate.year}',
                       ),
                       IconButton(
                         onPressed: () async {
@@ -92,7 +92,7 @@ class _State extends State<IndicationsScreen> {
                 TextButton(onPressed: () {
                   final number = int.tryParse(controller.text);
                   if(number != null) {
-                    final date = '${selectedDate.day}.${selectedDate.month}.${selectedDate.year}';
+                    final date = '${selectedDate.day.toString().padLeft(2, '0')}.${selectedDate.month.toString().padLeft(2, '0')}.${selectedDate.year}';
                     notifier.add(Indications(date, number));
                   }
                   Navigator.of(context).pop();
@@ -107,7 +107,12 @@ class _State extends State<IndicationsScreen> {
 
   void _editDialog(BuildContext context, int index) {
     final item = notifier.value[index];
-    DateTime selectedDate = DateTime.now();
+    final dateInt = item.date.split('.');
+    DateTime selectedDate = DateTime(
+      int.parse(dateInt[2]),
+      int.parse(dateInt[1]),
+      int.parse(dateInt[0]),
+    );
     final TextEditingController controller = TextEditingController(
       text: item.number.toString(),
     );
@@ -124,7 +129,7 @@ class _State extends State<IndicationsScreen> {
                 children: [
                   Row(
                     children: [
-                      Text(item.date),
+                      Text('${selectedDate.day.toString().padLeft(2, '0')}.${selectedDate.month.toString().padLeft(2, '0')}.${selectedDate.year}'),
                       IconButton(
                         onPressed: () async {
                           final picker = await showDatePicker(
@@ -163,7 +168,8 @@ class _State extends State<IndicationsScreen> {
                 TextButton(onPressed: () {
                   final number = int.tryParse(controller.text);
                   if(number != null) {
-                    notifier.update(index, Indications(item.date, number));
+                    final date = '${selectedDate.day.toString().padLeft(2, '0')}.${selectedDate.month.toString().padLeft(2, '0')}.${selectedDate.year}';
+                    notifier.update(index, Indications(date, number));
                   }
                   Navigator.of(context).pop();
                 },
