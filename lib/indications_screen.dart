@@ -203,6 +203,9 @@ class _State extends State<IndicationsScreen> {
         child: loading ? CircularProgressIndicator() : ValueListenableBuilder(
           valueListenable: notifier,
           builder: (context, indications, _) {
+            if(indications.isEmpty) {
+              return Text('Не добавлено ни одного показания');
+            }
             return ListView.separated(
               separatorBuilder: (context, index) => Divider(
                 color: Colors.grey,
