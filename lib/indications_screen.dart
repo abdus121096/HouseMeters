@@ -32,6 +32,20 @@ class _State extends State<IndicationsScreen> {
     Indications('01.12.2024', 17253),
   ]);
 
+  bool loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+
+
+    Future.delayed(Duration(seconds: 2), () {
+      setState(() {
+        loading = false;
+      });
+    });
+  }
+
   @override
   void dispose() {
     notifier.dispose();
@@ -185,31 +199,33 @@ class _State extends State<IndicationsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: ValueListenableBuilder(
-        valueListenable: notifier,
-        builder: (context, indications, _) {
-          return ListView.separated(
-            separatorBuilder: (context, index) => Divider(
-              color: Colors.grey,
-              thickness: 0.5,
-              indent: 17,
-              endIndent: 17,
-            ),
-            itemCount: indications.length,
-            itemBuilder: (context, index) {
-              final item = indications[index];
-              return GestureDetector(
-                onLongPress: () {
-                  _editDialog(context, index);
-                },
-                child: ListTile(
-                  title: Text(item.date),
-                  subtitle: Text(item.number.toString()),
-                ),
-              );
-            },
-          );
-        }
+      body: Center(
+        child: loading ? CircularProgressIndicator() : ValueListenableBuilder(
+          valueListenable: notifier,
+          builder: (context, indications, _) {
+            return ListView.separated(
+              separatorBuilder: (context, index) => Divider(
+                color: Colors.grey,
+                thickness: 0.5,
+                indent: 17,
+                endIndent: 17,
+              ),
+              itemCount: indications.length,
+              itemBuilder: (context, index) {
+                final item = indications[index];
+                return GestureDetector(
+                  onLongPress: () {
+                    _editDialog(context, index);
+                  },
+                  child: ListTile(
+                    title: Text(item.date),
+                    subtitle: Text(item.number.toString()),
+                  ),
+                );
+              },
+            );
+          }
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
