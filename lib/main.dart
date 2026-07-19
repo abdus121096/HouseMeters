@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:house_meters/indications_screen.dart';
+import 'package:house_meters/meters_screen.dart';
 
 
 void main() {
@@ -16,7 +16,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: .fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: IndicationsScreen(),
+      home: MetersScreen(),
     );
   }
 }

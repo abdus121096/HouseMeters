@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:house_meters/indications_screen.dart';
 
 class Meter {
   String name;
@@ -68,7 +69,9 @@ class _MetersScreenState extends State<MetersScreen> {
         itemCount: meter.length,
         itemBuilder: (context, index) {
           final item = meter[index];
-          return ListTile(title: Text(item.name));
+          return ListTile(title: Text(item.name), onTap: () {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => IndicationsScreen()));
+          },);
         },
       ),
       floatingActionButton: FloatingActionButton(
