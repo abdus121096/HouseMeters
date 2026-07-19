@@ -1,11 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:house_meters/indications_screen.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:convert';
+import 'dart:io';
 
 class Meter {
   String name;
   int intValue;
 
   Meter(this.name, this.intValue);
+
+  Map<String, dynamic> toJson() => {'name': name, 'intValue': intValue};
+
+  factory Meter.fromJson(Map<String, dynamic> json) {
+    return Meter(json['name'], json['intValue']);
+  }
 }
 
 class MetersScreen extends StatefulWidget {
@@ -21,6 +30,36 @@ class _MetersScreenState extends State<MetersScreen> {
     Meter('Холодная вода', 0),
     Meter('Горячая вода', 0),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<File> _getFile() async {
+    final dir = await getApplicationDocumentsDirectory();
+    return File('${dir.path}/meters_list.json');
+  }
+
+  Future<void> _save() async {
+    final file = await _getFile();
+    final jsonList = meter.map((item) => item.toJson()).toList();
+    await file.writeAsString(jsonEncode(jsonList));
+  }
+
+  Future<void> _load() async {
+    final file = await _getFile();
+    if(await file.exists()) {
+      final content = await file.readAsString();
+      final List<dynamic> jsonList = jsonDecode(content);
+      setState(() {
+        meter.clear();
+        meter.addAll(jsonList.map((json) => Meter.fromJson(json)));
+      });
+    }
+  }
+
 
   void _addDialog(BuildContext context) {
     final TextEditingController controller1 = TextEditingController();
@@ -59,6 +98,7 @@ class _MetersScreenState extends State<MetersScreen> {
                   setState(() {
                     meter.add(Meter(name, value));
                   });
+                  _save();
                 }
                 Navigator.of(context).pop();
               },
@@ -93,6 +133,7 @@ class _MetersScreenState extends State<MetersScreen> {
                 setState(() {
                   meter.removeAt(index);
                 });
+                _save();
                 Navigator.of(context).pop();
               },
               child: Text('удалить'),
@@ -110,6 +151,7 @@ class _MetersScreenState extends State<MetersScreen> {
                   setState(() {
                     meter[index] = Meter(name2, item.intValue);
                   });
+                  _save();
                 }
                 Navigator.of(context).pop();
               },
