@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:house_meters/indications_screen.dart';
-import 'package:path_provider/path_provider.dart';
-import 'dart:convert';
-import 'dart:io';
+import 'package:house_meters/meters_notifier.dart';
 
 class Meter {
   String name;
@@ -25,41 +23,22 @@ class MetersScreen extends StatefulWidget {
 }
 
 class _MetersScreenState extends State<MetersScreen> {
-  final List<Meter> meter = [
+  final MetersNotifier notifier = MetersNotifier([
     Meter('Электричество', 0),
     Meter('Холодная вода', 0),
     Meter('Горячая вода', 0),
-  ];
+  ]);
 
   @override
   void initState() {
     super.initState();
-    _load();
   }
 
-  Future<File> _getFile() async {
-    final dir = await getApplicationDocumentsDirectory();
-    return File('${dir.path}/meters_list.json');
+  @override
+  void dispose() {
+    notifier.dispose();
+    super.dispose();
   }
-
-  Future<void> _save() async {
-    final file = await _getFile();
-    final jsonList = meter.map((item) => item.toJson()).toList();
-    await file.writeAsString(jsonEncode(jsonList));
-  }
-
-  Future<void> _load() async {
-    final file = await _getFile();
-    if(await file.exists()) {
-      final content = await file.readAsString();
-      final List<dynamic> jsonList = jsonDecode(content);
-      setState(() {
-        meter.clear();
-        meter.addAll(jsonList.map((json) => Meter.fromJson(json)));
-      });
-    }
-  }
-
 
   void _addDialog(BuildContext context) {
     final TextEditingController controller1 = TextEditingController();
@@ -95,10 +74,7 @@ class _MetersScreenState extends State<MetersScreen> {
                 final name = controller1.text;
                 final value = int.tryParse(controller2.text);
                 if (name.isNotEmpty && value != null) {
-                  setState(() {
-                    meter.add(Meter(name, value));
-                  });
-                  _save();
+                  notifier.add(Meter(name, value));
                 }
                 Navigator.of(context).pop();
               },
@@ -111,9 +87,13 @@ class _MetersScreenState extends State<MetersScreen> {
   }
 
   void _editDialog(BuildContext context, int index) {
-    final item = meter[index];
-    final TextEditingController controller3 = TextEditingController(text: item.name);
-    final TextEditingController controller4 = TextEditingController(text: item.intValue.toString());
+    final item = notifier.value[index];
+    final TextEditingController controller3 = TextEditingController(
+      text: item.name,
+    );
+    final TextEditingController controller4 = TextEditingController(
+      text: item.intValue.toString(),
+    );
 
     showDialog(
       context: context,
@@ -130,10 +110,7 @@ class _MetersScreenState extends State<MetersScreen> {
           actions: [
             TextButton(
               onPressed: () {
-                setState(() {
-                  meter.removeAt(index);
-                });
-                _save();
+                notifier.delete(index);
                 Navigator.of(context).pop();
               },
               child: Text('удалить'),
@@ -148,10 +125,7 @@ class _MetersScreenState extends State<MetersScreen> {
               onPressed: () {
                 final name2 = controller3.text;
                 if (name2.isNotEmpty) {
-                  setState(() {
-                    meter[index] = Meter(name2, item.intValue);
-                  });
-                  _save();
+                  notifier.update(index, Meter(name2, item.intValue));
                 }
                 Navigator.of(context).pop();
               },
@@ -166,26 +140,33 @@ class _MetersScreenState extends State<MetersScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: ListView.separated(
-        separatorBuilder: (context, index) => Divider(
-          color: Colors.grey,
-          thickness: 0.5,
-          indent: 17,
-          endIndent: 17,
-        ),
-        itemCount: meter.length,
-        itemBuilder: (context, index) {
-          final item = meter[index];
-          return ListTile(
-            title: Text(item.name),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => IndicationsScreen()),
+      body: ValueListenableBuilder(
+        valueListenable: notifier,
+        builder: (context, meter, _) {
+          return ListView.separated(
+            separatorBuilder: (context, index) => Divider(
+              color: Colors.grey,
+              thickness: 0.5,
+              indent: 17,
+              endIndent: 17,
+            ),
+            itemCount: meter.length,
+            itemBuilder: (context, index) {
+              final item = meter[index];
+              return ListTile(
+                title: Text(item.name),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => IndicationsScreen(),
+                    ),
+                  );
+                },
+                onLongPress: () {
+                  _editDialog(context, index);
+                },
               );
-            },
-            onLongPress: () {
-              _editDialog(context, index);
             },
           );
         },

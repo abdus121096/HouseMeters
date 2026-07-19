@@ -2,15 +2,15 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
-import 'indications_screen.dart';
 import 'package:flutter/foundation.dart';
+import 'meters_screen.dart';
 
-class IndicationsNotifier extends ValueNotifier<List<Indications>> {
-  IndicationsNotifier(super.value);
+class MetersNotifier extends ValueNotifier<List<Meter>>{
+  MetersNotifier(super.value);
 
   Future<File> _getFile() async {
     final dir = await getApplicationDocumentsDirectory();
-    return File('${dir.path}/indications_list.json');
+    return File('${dir.path}/meters_list.json');
   }
 
   Future<void> _save() async {
@@ -21,23 +21,24 @@ class IndicationsNotifier extends ValueNotifier<List<Indications>> {
 
   Future<void> load() async {
     final file = await _getFile();
-    if (await file.exists()) {
+    if(await file.exists()) {
       final content = await file.readAsString();
       final List<dynamic> jsonList = jsonDecode(content);
-      value = jsonList.map((json) => Indications.fromJson(json)).toList();
+      value = jsonList.map((json) => Meter.fromJson(json)).toList();
     }
   }
 
-  void add(Indications item) {
+  void add(Meter item) {
     value = [...value, item];
     _save();
   }
 
-  void update(int index, Indications item) {
+  void update(int index, Meter item) {
     final newList = [...value];
     newList[index] = item;
     value = newList;
     _save();
+
   }
 
   void delete(int index) {
