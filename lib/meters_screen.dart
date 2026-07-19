@@ -20,6 +20,41 @@ class _MetersScreenState extends State<MetersScreen> {
     Meter('Горячая вода'),
   ];
 
+  void _addDialog(BuildContext context) {
+    final TextEditingController controller1 = TextEditingController();
+    final TextEditingController controller2 = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Добавить счетчик'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: controller1,
+                decoration: InputDecoration(hintText: 'название'),
+              ),
+              TextField(
+                controller: controller2,
+                decoration: InputDecoration(hintText: 'начальные показания'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () {
+              Navigator.of(context).pop();
+            }, child: Text('отмена')),
+            TextButton(onPressed: () {
+              Navigator.of(context).pop();
+            }, child: Text('сохранить')),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -33,10 +68,15 @@ class _MetersScreenState extends State<MetersScreen> {
         itemCount: meter.length,
         itemBuilder: (context, index) {
           final item = meter[index];
-          return ListTile(
-            title: Text(item.name),
-          );
-        }),
+          return ListTile(title: Text(item.name));
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          _addDialog(context);
+        },
+        child: Icon(Icons.add),
+      ),
     );
   }
 }
