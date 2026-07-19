@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'indications_notifier.dart';
 
-
 class Indications {
   String date;
   int number;
 
   Indications(this.date, this.number);
+
+  Map<String, dynamic> toJson() => {'date': date, 'number': number};
+
+  factory Indications.fromJson(Map<String, dynamic> json) {
+    return Indications(json['date'], json['number']);
+  }
 }
 
 class IndicationsScreen extends StatefulWidget {
@@ -38,10 +43,11 @@ class _State extends State<IndicationsScreen> {
   void initState() {
     super.initState();
 
-
-    Future.delayed(Duration(seconds: 2), () {
-      setState(() {
-        loading = false;
+    notifier.load().then((_) {
+      Future.delayed(Duration(seconds: 2), () {
+        setState(() {
+          loading = false;
+        });
       });
     });
   }
@@ -103,14 +109,18 @@ class _State extends State<IndicationsScreen> {
                   },
                   child: Text('отмена'),
                 ),
-                TextButton(onPressed: () {
-                  final number = int.tryParse(controller.text);
-                  if(number != null) {
-                    final date = '${selectedDate.day.toString().padLeft(2, '0')}.${selectedDate.month.toString().padLeft(2, '0')}.${selectedDate.year}';
-                    notifier.add(Indications(date, number));
-                  }
-                  Navigator.of(context).pop();
-                }, child: Text('добавить')),
+                TextButton(
+                  onPressed: () {
+                    final number = int.tryParse(controller.text);
+                    if (number != null) {
+                      final date =
+                          '${selectedDate.day.toString().padLeft(2, '0')}.${selectedDate.month.toString().padLeft(2, '0')}.${selectedDate.year}';
+                      notifier.add(Indications(date, number));
+                    }
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('добавить'),
+                ),
               ],
             );
           },
@@ -143,7 +153,9 @@ class _State extends State<IndicationsScreen> {
                 children: [
                   Row(
                     children: [
-                      Text('${selectedDate.day.toString().padLeft(2, '0')}.${selectedDate.month.toString().padLeft(2, '0')}.${selectedDate.year}'),
+                      Text(
+                        '${selectedDate.day.toString().padLeft(2, '0')}.${selectedDate.month.toString().padLeft(2, '0')}.${selectedDate.year}',
+                      ),
                       IconButton(
                         onPressed: () async {
                           final picker = await showDatePicker(
@@ -169,25 +181,31 @@ class _State extends State<IndicationsScreen> {
                 ],
               ),
               actions: [
-                TextButton(onPressed: () {
-                  notifier.delete(index);
-                  Navigator.of(context).pop();
-                }, child: Text('удалить'),),
+                TextButton(
+                  onPressed: () {
+                    notifier.delete(index);
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('удалить'),
+                ),
                 TextButton(
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
                   child: Text('отмена'),
                 ),
-                TextButton(onPressed: () {
-                  final number = int.tryParse(controller.text);
-                  if(number != null) {
-                    final date = '${selectedDate.day.toString().padLeft(2, '0')}.${selectedDate.month.toString().padLeft(2, '0')}.${selectedDate.year}';
-                    notifier.update(index, Indications(date, number));
-                  }
-                  Navigator.of(context).pop();
-                },
-                 child: Text('сохранить')),
+                TextButton(
+                  onPressed: () {
+                    final number = int.tryParse(controller.text);
+                    if (number != null) {
+                      final date =
+                          '${selectedDate.day.toString().padLeft(2, '0')}.${selectedDate.month.toString().padLeft(2, '0')}.${selectedDate.year}';
+                      notifier.update(index, Indications(date, number));
+                    }
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('сохранить'),
+                ),
               ],
             );
           },
@@ -200,35 +218,37 @@ class _State extends State<IndicationsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: loading ? CircularProgressIndicator() : ValueListenableBuilder(
-          valueListenable: notifier,
-          builder: (context, indications, _) {
-            if(indications.isEmpty) {
-              return Text('Не добавлено ни одного показания');
-            }
-            return ListView.separated(
-              separatorBuilder: (context, index) => Divider(
-                color: Colors.grey,
-                thickness: 0.5,
-                indent: 17,
-                endIndent: 17,
+        child: loading
+            ? CircularProgressIndicator()
+            : ValueListenableBuilder(
+                valueListenable: notifier,
+                builder: (context, indications, _) {
+                  if (indications.isEmpty) {
+                    return Text('Не добавлено ни одного показания');
+                  }
+                  return ListView.separated(
+                    separatorBuilder: (context, index) => Divider(
+                      color: Colors.grey,
+                      thickness: 0.5,
+                      indent: 17,
+                      endIndent: 17,
+                    ),
+                    itemCount: indications.length,
+                    itemBuilder: (context, index) {
+                      final item = indications[index];
+                      return GestureDetector(
+                        onLongPress: () {
+                          _editDialog(context, index);
+                        },
+                        child: ListTile(
+                          title: Text(item.date),
+                          subtitle: Text(item.number.toString()),
+                        ),
+                      );
+                    },
+                  );
+                },
               ),
-              itemCount: indications.length,
-              itemBuilder: (context, index) {
-                final item = indications[index];
-                return GestureDetector(
-                  onLongPress: () {
-                    _editDialog(context, index);
-                  },
-                  child: ListTile(
-                    title: Text(item.date),
-                    subtitle: Text(item.number.toString()),
-                  ),
-                );
-              },
-            );
-          }
-        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
